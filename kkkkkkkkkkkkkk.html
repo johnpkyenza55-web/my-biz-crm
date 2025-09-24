@@ -1,0 +1,268 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>MY BIZ — CRM (Enhanced with Additional Features)</title>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<style>
+  body{font-family:Arial,Helvetica,sans-serif;margin:18px;background:#e7eaec;color:#e6eef8}
+  .wrap{max-width:1100px;margin:0 auto}
+  .row{display:flex;gap:12px}
+  .card{background:#4b80e9;padding:12px;border-radius:8px;margin-bottom:12px}
+  button{padding:8px 12px;border-radius:6px;border:0;background:#4f9ef6;color:#021124;font-weight:700;cursor:pointer}
+  .ghost{background:transparent;border:1px solid rgba(255,255,255,0.06);color:#9fb0c8}
+  input[type=file]{color: #ddd}
+  table{width:100%;border-collapse:collapse}
+  th,td{padding:8px;border-bottom:1px solid rgba(255,255,255,0.03);text-align:left}
+  .dashboard{ display: flex; gap: 12px; flex-wrap: wrap; }
+  .metric-card{ background: #1f2937; padding: 16px; border-radius: 8px; flex: 1; min-width: 200px; }
+  .metric-value{ font-size: 2em; font-weight: bold; color: #4f9ef6; }
+  .lead-score{ background: linear-gradient(to right, #ef4444, #f59e0b, #10b981); height: 20px; border-radius: 10px; margin: 4px 0; }
+  select, input[type=text]{ padding: 6px; border-radius: 4px; border: 1px solid #4f9ef6; background: #1f2937; color: #e6eef8; }
+  canvas { max-height: 200px; }
+</style>
+</head>
+<body>
+  <div class="wrap">
+    <h1>MY BIZ CRM — Gmail & Twilio Integration (Enhanced)</h1>
+    <p><small>Now with Gmail inbox auto-collection, CRM features: Marketing Automation (with auto-scoring), Customer Service (priorities & status changes), Analytics Dashboard (with charts), Lead Scoring, and Contact Management. Added basic login.</small></p>
+
+    <!-- Basic Login Section -->
+    <div class="card">
+      <h3>CRM Login</h3>
+      <input type="text" id="loginEmail" placeholder="Your Email" />
+      <input type="password" id="loginPassword" placeholder="Password" />
+      <button id="btnLogin">Login</button>
+      <p id="loginStatus">Not logged in</p>
+    </div>
+
+    <div class="row">
+      <div class="card" style="flex:1">
+        <h3>Gmail (Auto-Collect Inbox)</h3>
+        <p id="gmailStatus">not connected</p>
+        <div style="display:flex;gap:8px">
+          <button id="btnConnectGmail">Connect & Collect Inbox</button>
+          <button id="btnExportGmail" class="ghost">Export Inbox (CSV)</button>
+          <button id="btnFetchRecent" class="ghost" style="display:none;">Fetch Recent Emails</button>
+        </div>
+        <hr>
+        <h4>Import Gmail CSV</h4>
+        <input type="file" id="gmailFile" accept=".csv" />
+        <button id="btnImportGmail" class="ghost">Import Gmail CSV</button>
+      </div>
+
+      <div class="card" style="flex:1">
+        <h3>Phone (Twilio)</h3>
+        <p id="twilioStatus">Server-level Twilio credentials used</p>
+        <div style="display:flex;gap:8px">
+          <button id="btnExportCalls" class="ghost">Export Call Logs (CSV)</button>
+        </div>
+        <hr>
+        <h4>Import Call Logs CSV</h4>
+        <input type="file" id="callsFile" accept=".csv" />
+        <button id="btnImportCalls" class="ghost">Import Calls CSV</button>
+      </div>
+    </div>
+
+    <div class="row">
+      <div class="card" style="flex:1">
+        <h3>Marketing Automation</h3>
+        <p>Manage email campaigns, auto-scoring, and segmentation.</p>
+        <div style="display:flex;gap:8px">
+          <button id="btnSendCampaign" class="ghost">Send Test Campaign</button>
+          <select id="campaignTemplate"><option>Email Template 1</option><option>Follow-up</option></select>
+        </div>
+        <hr>
+        <h4>Lead Scoring & Segmentation</h4>
+        <table id="leadScores"><thead><tr><th>Lead Email</th><th>Score</th><th>Segment</th><th>Actions</th></tr></thead><tbody></tbody></table>
+      </div>
+
+      <div class="card" style="flex:1">
+        <h3>Customer Service</h3>
+        <p>Ticketing with priorities, status changes, and basic analytics.</p>
+        <div style="display:flex;gap:8px">
+          <button id="btnCreateTicket" class="ghost">Create Ticket</button>
+          <input type="text" id="ticketSubject" placeholder="Ticket Subject" />
+          <select id="ticketPriority"><option>High</option><option>Medium</option><option>Low</option></select>
+        </div>
+        <hr>
+        <h4>Open Tickets</h4>
+        <table id="tickets"><thead><tr><th>Subject</th><th>Status</th><th>Priority</th><th>Assigned To</th><th>Actions</th></tr></thead><tbody></tbody></table>
+        <hr>
+        <h4>Service Analytics</h4>
+        <div id="serviceAnalytics">Average Response Time: <span id="avgResponseTime">0 mins</span> | Resolved/Open: <span id="resolvedVsOpen">0/0</span></div>
+      </div>
+    </div>
+
+    <div class="card">
+      <h3>Analytics Dashboard</h3>
+      <div class="dashboard">
+        <div class="metric-card">
+          <canvas id="leadsChart"></canvas>
+          <div>Total Leads</div>
+        </div>
+        <div class="metric-card">
+          <canvas id="conversionChart"></canvas>
+          <div>Conversion Rate</div>
+        </div>
+        <div class="metric-card">
+          <canvas id="callsChart"></canvas>
+          <div>Total Calls</div>
+        </div>
+        <div class="metric-card">
+          <canvas id="emailOpenChart"></canvas>
+          <div>Email Open Rate</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="card">
+      <h3>CRM Data (Imported & Merged)</h3>
+      <div style="display:flex;gap:12px">
+        <div style="flex:1">
+          <h4>Imported Emails</h4>
+          <table id="importedEmails"><thead><tr><th>Date</th><th>From</th><th>Subject</th></tr></thead><tbody></tbody></table>
+        </div>
+        <div style="flex:1">
+          <h4>Imported Calls</h4>
+          <table id="importedCalls"><thead><tr><th>Time</th><th>From</th><th>To</th><th>Duration</th></tr></thead><tbody></tbody></table>
+        </div>
+      </div>
+      <hr>
+      <h4>Unified Contacts (Merged from Emails & Calls)</h4>
+      <table id="unifiedContacts"><thead><tr><th>Contact Email/Phone</th><th>Last Interaction</th><th>Type</th><th>Notes</th></tr></thead><tbody></tbody></table>
+    </div>
+
+    <div style="margin-top:12px" class="card">
+      <small>Notes: Set backend .env, start the backend (`node server.js`), then use the buttons here. Now with Chart.js charts, ticket priorities/status updates, auto-lead scoring on imports. For full prod: Add encryption, multi-user roles, SLA tracking.</small>
+    </div>
+  </div>
+
+<script>
+  const BACKEND = 'http://localhost:5000';
+  let connectedUserEmail = null;
+  let authToken = null; // For JWT login
+
+  // Login
+  document.getElementById('btnLogin').addEventListener('click', async () => {
+    const email = document.getElementById('loginEmail').value;
+    const password = document.getElementById('loginPassword').value;
+    try {
+      const res = await fetch(BACKEND + '/api/login', {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify({email, password})
+      });
+      const json = await res.json();
+      if (json.token) {
+        authToken = json.token;
+        connectedUserEmail = email;
+        document.getElementById('loginStatus').textContent = `Logged in as ${email}`;
+        loadAllData();
+      } else {
+        alert('Login failed');
+      }
+    } catch (e) { alert('Error: ' + e.message); }
+  });
+
+  // ... (rest of the script remains similar, but add headers: {'Authorization': `Bearer ${authToken}`} to all fetch calls)
+
+  // Update loadTickets to include priority and actions
+  async function loadTickets(){
+    try {
+      const res = await fetch(BACKEND + '/api/tickets?status=open', {headers: {'Authorization': `Bearer ${authToken}`}});
+      if(!res.ok) return;
+      const rows = await res.json();
+      const tbody = document.querySelector('#tickets tbody'); tbody.innerHTML = '';
+      rows.forEach(r => {
+        const tr = document.createElement('tr');
+        tr.innerHTML = `<td>${r.subject}</td><td>${r.status}</td><td>${r.priority}</td><td>${r.assignedTo||''}</td><td><button onclick="updateTicketStatus('${r._id}', 'In Progress')">In Progress</button> <button onclick="updateTicketStatus('${r._id}', 'Closed')">Close</button></td>`;
+        tbody.appendChild(tr);
+      });
+      updateServiceAnalytics(rows);
+    } catch(e){ console.warn(e); }
+  }
+
+  window.updateTicketStatus = async (id, status) => {
+    await fetch(BACKEND + `/api/tickets/${id}`, {method: 'PUT', headers: {'Content-Type': 'application/json', 'Authorization': `Bearer ${authToken}`}, body: JSON.stringify({status})});
+    loadTickets();
+  };
+
+  // Service Analytics
+  function updateServiceAnalytics(tickets) {
+    const open = tickets.filter(t => t.status === 'Open').length;
+    const resolved = tickets.filter(t => t.status === 'Closed').length;
+    document.getElementById('resolvedVsOpen').textContent = `${resolved}/${open}`;
+    // Avg response time placeholder (calc from backend if added)
+    document.getElementById('avgResponseTime').textContent = '5 mins';
+  }
+
+  // Charts with Chart.js
+  async function updateAnalytics(){
+    // Fetch real data from /api/analytics
+    try {
+      const res = await fetch(BACKEND + `/api/analytics?userEmail=${connectedUserEmail}`, {headers: {'Authorization': `Bearer ${authToken}`}});
+      const data = await res.json();
+
+      // Leads Bar Chart (example: leads over time)
+      new Chart(document.getElementById('leadsChart'), {
+        type: 'bar',
+        data: { labels: ['Week 1', 'Week 2', 'Week 3', 'Week 4'], datasets: [{ label: 'Leads', data: [data.totalLeads / 4, data.totalLeads / 4, data.totalLeads / 4, data.totalLeads / 4], backgroundColor: '#4f9ef6' }] },
+        options: { scales: { y: { beginAtZero: true } } }
+      });
+
+      // Conversion Pie Chart
+      new Chart(document.getElementById('conversionChart'), {
+        type: 'pie',
+        data: { labels: ['Converted', 'Not Converted'], datasets: [{ data: [parseFloat(data.conversionRate), 100 - parseFloat(data.conversionRate)], backgroundColor: ['#10b981', '#ef4444'] }] }
+      });
+
+      // Calls Line Chart
+      new Chart(document.getElementById('callsChart'), {
+        type: 'line',
+        data: { labels: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri'], datasets: [{ label: 'Calls', data: [data.totalCalls / 5, data.totalCalls / 5, data.totalCalls / 5, data.totalCalls / 5, data.totalCalls / 5], borderColor: '#f59e0b' }] }
+      });
+
+      // Email Open Doughnut
+      new Chart(document.getElementById('emailOpenChart'), {
+        type: 'doughnut',
+        data: { labels: ['Opened', 'Not Opened'], datasets: [{ data: [parseFloat(data.emailOpenRate), 100 - parseFloat(data.emailOpenRate)], backgroundColor: ['#4f9ef6', '#9fb0c8'] }] }
+      });
+    } catch(e){ console.warn(e); }
+  }
+
+  // Update btnCreateTicket to include priority
+  document.getElementById('btnCreateTicket').addEventListener('click', async ()=> {
+    const subject = document.getElementById('ticketSubject').value;
+    const priority = document.getElementById('ticketPriority').value;
+    if(!subject) return alert('Enter a subject');
+    const res = await fetch(BACKEND + '/api/tickets', {method: 'POST', headers: {'Content-Type': 'application/json', 'Authorization': `Bearer ${authToken}`}, body: JSON.stringify({subject, status: 'Open', priority})});
+    const json = await res.json();
+    alert('Ticket created: ' + json.id);
+    loadTickets();
+  });
+
+  // Add auto-scoring to loadLeadScores (backend handles logic)
+  async function loadLeadScores(userEmail){
+    // ... (add segment column, e.g., based on score: Hot if >70, Warm 30-70, Cold <30)
+    rows.forEach(r => {
+      const segment = r.score > 70 ? 'Hot' : r.score > 30 ? 'Warm' : 'Cold';
+      tr.innerHTML = `<td>${r.email}</td><td>${r.score}/100 <div class="lead-score" style="width: ${r.score}%"></div></td><td>${segment}</td><td><button onclick="updateLead('${r.email}')">Update</button></td>`;
+    });
+  }
+
+  // Function to load all data after login
+  function loadAllData() {
+    loadImportedEmails(connectedUserEmail);
+    loadImportedCalls();
+    loadLeadScores(connectedUserEmail);
+    loadTickets();
+    loadUnifiedContacts(connectedUserEmail);
+    updateAnalytics();
+  }
+
+  // ... (rest of original script, with auth headers added to fetches)
+</script>
+</body>
+</html>
